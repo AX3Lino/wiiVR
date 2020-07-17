@@ -12,6 +12,9 @@ namespace WiimoteTest
     {
         private vJoy vjoy;
         private uint id;
+        private Point3 calibration;
+
+        bool calFlag = false;
 
         public CalcLogic(vJoy vjoy, uint id)
         {
@@ -21,12 +24,24 @@ namespace WiimoteTest
 
         public void setMPS(Point3 values)
         {
+            //For better performance change this to something else!
+            if(calFlag) {
+                calibration = values;
+                calFlag = false;
+            }
+
             Debug.WriteLine("Got MPS");
+
         }
 
         public void setIR(WiimoteLib.Point value)
         {
             Debug.WriteLine("Got IR");
+        }
+
+        public void setMPSCalibration()
+        {
+            calFlag = true;
         }
 
     }

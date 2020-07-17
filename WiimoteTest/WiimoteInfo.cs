@@ -260,6 +260,9 @@ namespace WiimoteTest
 			cLogic = new CalcLogic(vjoy,id);
         }
 
-
-	}
+        private void button2_Click(object sender, EventArgs e)
+        {
+			cLogic.setMPSCalibration();
+        }
+    }
 }
