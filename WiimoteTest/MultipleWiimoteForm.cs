@@ -112,8 +112,8 @@ namespace WiimoteTest
             con1 = initializeVJoy(1, dev1);
             //con2 = initializeVJoy(2, dev2);
             
-            wInfo[0].setTarget(con1);
-            //wInfo[0].setTarget(con2);
+            wInfo[0].setTarget(con1,1);
+            //wInfo[0].setTarget(con2,2);
         }
 
         private vJoy initializeVJoy(uint id, Wiimote wiiDevice)

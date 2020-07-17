@@ -11,10 +11,12 @@ namespace WiimoteTest
     class CalcLogic
     {
         private vJoy vjoy;
+        private uint id;
 
-        public CalcLogic(vJoy vjoy)
+        public CalcLogic(vJoy vjoy, uint id)
         {
             this.vjoy = vjoy;
+            this.id = id;
         }
 
         public void setMPS(Point3 values)

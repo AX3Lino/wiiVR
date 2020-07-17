@@ -255,9 +255,9 @@ namespace WiimoteTest
 			mWiimote.InitializeMotionPlus();
 		}
 
-		public void setTarget(vJoy vjoy)
+		public void setTarget(vJoy vjoy, uint id)
         {
-			cLogic = new CalcLogic(vjoy);
+			cLogic = new CalcLogic(vjoy,id);
         }
 
 
