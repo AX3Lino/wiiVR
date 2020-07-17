@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CalcLogic.cs" />
     <Compile Include="SingleWiimoteForm.cs">
       <SubType>Form</SubType>
     </Compile>

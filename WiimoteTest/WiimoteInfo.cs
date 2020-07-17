@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using vJoyInterfaceWrap;
 using WiimoteLib;
 
 namespace WiimoteTest
@@ -25,6 +26,8 @@ namespace WiimoteTest
 		private Bitmap b = new Bitmap(256, 192, PixelFormat.Format24bppRgb);
 		private Graphics g;
 		private Wiimote mWiimote;
+
+		private CalcLogic cLogic = null;
 
 		public WiimoteInfo()
 		{
@@ -189,6 +192,10 @@ namespace WiimoteTest
 				case ExtensionType.MotionPlus:
 				case ExtensionType.MotionPlus_TR:
 					lblMotionPlus.Text = ws.MotionPlusState.RawValues.ToString();
+					if(cLogic != null)
+                    {
+						cLogic.setMPS(ws.MotionPlusState.RawValues);
+                    }
 					//Debug.WriteLine(ws.MotionPlusState.RawValues.ToString());   //---------------------TU SU HODNOTY------------- TODO
 					clbSpeed.SetItemChecked(0, ws.MotionPlusState.YawFast);
 					clbSpeed.SetItemChecked(1, ws.MotionPlusState.PitchFast);
@@ -221,8 +228,12 @@ namespace WiimoteTest
 			{
 				lblNorm.Text = irSensor.Position.ToString() + ", " + irSensor.Size;
 				lblRaw.Text = irSensor.RawPosition.ToString();
-				Debug.WriteLine(irSensor.RawPosition.ToString());
+				//Debug.WriteLine(irSensor.RawPosition.ToString());
 				//-------------
+				if (cLogic != null)
+				{
+					cLogic.setIR(irSensor.RawPosition);
+				}
 				g.DrawEllipse(new Pen(color), (int)(irSensor.RawPosition.X / 4), (int)(irSensor.RawPosition.Y / 4),
 							 irSensor.Size+1, irSensor.Size+1);
 			}
@@ -243,6 +254,11 @@ namespace WiimoteTest
 		{
 			mWiimote.InitializeMotionPlus();
 		}
+
+		public void setTarget(vJoy vjoy)
+        {
+			cLogic = new CalcLogic(vjoy);
+        }
 
 
 	}

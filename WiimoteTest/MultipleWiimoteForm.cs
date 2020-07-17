@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using vJoyInterfaceWrap;
 using WiimoteLib;
@@ -11,6 +12,10 @@ namespace WiimoteTest
         // map a wiimote to a specific state user control dealie
         Dictionary<Guid, WiimoteInfo> mWiimoteMap = new Dictionary<Guid, WiimoteInfo>();
         WiimoteCollection mWC;
+
+        vJoy con1, con2;
+        Wiimote dev1, dev2;
+        WiimoteInfo[] wInfo = new WiimoteInfo[2];
 
         public MultipleWiimoteForm()
         {
@@ -40,6 +45,7 @@ namespace WiimoteTest
                 MessageBox.Show(ex.Message, "Unknown error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
+            int count = 0;
             foreach (Wiimote wm in mWC)
             {
                 // create a new tab
@@ -49,6 +55,8 @@ namespace WiimoteTest
                 // create a new user control
                 WiimoteInfo wi = new WiimoteInfo(wm);
                 tp.Controls.Add(wi);
+
+                wInfo[count++] = wi;
 
                 // setup the map from this wiimote's ID to that control
                 mWiimoteMap[wm.ID] = wi;
@@ -65,6 +73,8 @@ namespace WiimoteTest
                 wm.InitializeMotionPlus();
 
             }
+
+            startVJoy();
         }
 
         void wm_WiimoteChanged(object sender, WiimoteChangedEventArgs e)
@@ -92,26 +102,28 @@ namespace WiimoteTest
                 wm.Disconnect();
         }
 
-        private void initializeVJoy()
+        private void startVJoy()
         {
-            // Declaring one joystick (Device id 1) and a position structure. 
-            vJoy joystick;
-            uint id = 1;
+            //Allow for second controller
 
-            // Create one joystick object and a position structure.
-            joystick = new vJoy();
+            dev1 = mWC[0];
+            dev2 = mWC[1];
 
-            if (id <= 0 || id > 16)
-            {
-                Console.WriteLine("Illegal device ID {0}\nExit!", id);
-                return;
-            }
+            con1 = initializeVJoy(1, dev1);
+            //con2 = initializeVJoy(2, dev2);
+            
+            wInfo[0].setTarget(con1);
+            //wInfo[0].setTarget(con2);
+        }
 
+        private vJoy initializeVJoy(uint id, Wiimote wiiDevice)
+        {
+            vJoy joystick = new vJoy();
             // Get the driver attributes (Vendor ID, Product ID, Version Number)
             if (!joystick.vJoyEnabled())
             {
                 Console.WriteLine("vJoy driver not enabled: Failed Getting vJoy attributes.\n");
-                return;
+                return null;
             }
             else
                 Console.WriteLine("Vendor: {0}\nProduct :{1}\nVersion Number:{2}\n", joystick.GetvJoyManufacturerString(), joystick.GetvJoyProductString(), joystick.GetvJoySerialNumberString());
@@ -128,13 +140,13 @@ namespace WiimoteTest
                     break;
                 case VjdStat.VJD_STAT_BUSY:
                     Console.WriteLine("vJoy Device {0} is already owned by another feeder\nCannot continue\n", id);
-                    return;
+                    return null;
                 case VjdStat.VJD_STAT_MISS:
                     Console.WriteLine("vJoy Device {0} is not installed or disabled\nCannot continue\n", id);
-                    return;
+                    return null;
                 default:
                     Console.WriteLine("vJoy Device {0} general error\nCannot continue\n", id);
-                    return;
+                    return null;
             };
 
             // Check which axes are supported
@@ -154,8 +166,8 @@ namespace WiimoteTest
             Console.WriteLine("Numner of Continuous POVs\t{0}\n", ContPovNumber);
             Console.WriteLine("Numner of Descrete POVs\t\t{0}\n", DiscPovNumber);
             Console.WriteLine("Axis X\t\t{0}\n", AxisX ? "Yes" : "No");
-            Console.WriteLine("Axis Y\t\t{0}\n", AxisX ? "Yes" : "No");
-            Console.WriteLine("Axis Z\t\t{0}\n", AxisX ? "Yes" : "No");
+            Console.WriteLine("Axis Y\t\t{0}\n", AxisY ? "Yes" : "No");
+            Console.WriteLine("Axis Z\t\t{0}\n", AxisZ ? "Yes" : "No");
             Console.WriteLine("Axis Rx\t\t{0}\n", AxisRX ? "Yes" : "No");
             Console.WriteLine("Axis Rz\t\t{0}\n", AxisRZ ? "Yes" : "No");
 
@@ -172,118 +184,21 @@ namespace WiimoteTest
             if ((status == VjdStat.VJD_STAT_OWN) || ((status == VjdStat.VJD_STAT_FREE) && (!joystick.AcquireVJD(id))))
             {
                 Console.WriteLine("Failed to acquire vJoy device number {0}.\n", id);
-                return;
+                return null;
             }
             else
                 Console.WriteLine("Acquired: vJoy device number {0}.\n", id);
 
-            Console.WriteLine("\npress enter to stat feeding");
-            Console.ReadKey(true);
-
-            int X, Y, Z, ZR, XR;
-            uint count = 0;
             long maxval = 0;
 
-            X = 20;
-            Y = 30;
-            Z = 40;
-            XR = 60;
-            ZR = 80;
-
             joystick.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref maxval);
-
-            bool res;
-            // Reset this device to default values
             joystick.ResetVJD(id);
+            wiiDevice = mWC[(int)(id-1)];
+            Debug.WriteLine("Device type " + wiiDevice.WiimoteState.ExtensionType);
+            Debug.WriteLine("Device id " + id + " loaded");
 
-            Console.WriteLine("Main Method");
-
-            Wiimote wiiDevice = new Wiimote();
-            Console.WriteLine("2");
-
-            try
-            {
-                Console.WriteLine("3");
-                Wiimote test = Connect(mWC[0]);
-                if (test == null)
-                    Console.WriteLine("ERROR CONENCTION!");
-                else
-                {
-                    Console.WriteLine("conenction fine");
-                    wiiDevice = test;
-                }
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Not found!");
-            }
-
-
-            try
-            {
-                if (wiiDevice.WiimoteState.ExtensionType != ExtensionType.BalanceBoard)
-                {
-                    Console.WriteLine("NOT BB!");
-                    return;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("EXCEPTION! " + e.Message);
-                Console.Read();
-            }
+            return joystick;
         }
-
-
-            private Wiimote Connect(Wiimote wiiDeviceInc)
-            {
-                try
-                {
-                    // Find all connected Wii devices.
-
-                    var deviceCollection = new WiimoteCollection();
-                    deviceCollection.FindAllWiimotes();
-
-                    Console.WriteLine(deviceCollection.Count);
-
-                    Wiimote wiiDevice = deviceCollection[0];
-
-                    // Device type can only be found after connection, so prompt for multiple devices.
-
-                    // Setup update handlers. LATER
-
-                    wiiDevice.WiimoteChanged += wiiDevice_WiimoteChanged;
-                    wiiDevice.WiimoteExtensionChanged += wiiDevice_WiimoteExtensionChanged;
-
-                    // Connect and send a request to verify it worked.
-
-                    wiiDevice.Connect();
-                    wiiDevice.SetReportType(InputReport.IRAccel, false); // FALSE = DEVICE ONLY SENDS UPDATES WHEN VALUES CHANGE!
-                    wiiDevice.SetLEDs(true, false, false, false);
-
-                    return wiiDevice;
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return null;
-                }
-
-            }
-
-            static private void wiiDevice_WiimoteChanged(object sender, WiimoteChangedEventArgs e)
-            {
-                // Called every time there is a sensor update, values available using e.WiimoteState.
-                // Use this for tracking and filtering rapid accelerometer and gyroscope sensor data.
-                // The balance board values are basic, so can be accessed directly only when needed.
-            }
-
-            static private void wiiDevice_WiimoteExtensionChanged(object sender, WiimoteExtensionChangedEventArgs e)
-            {
-                // This is not needed for balance boards.
-            }
         
     }
 }
