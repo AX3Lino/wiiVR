@@ -20,6 +20,10 @@ namespace WiimoteTest
         {
             this.vjoy = vjoy;
             this.id = id;
+            calibration = new Point3();
+            calibration.X = 0;
+            calibration.Y = 0;
+            calibration.Z = 0;
         }
 
         public void setMPS(Point3 values)
@@ -31,6 +35,7 @@ namespace WiimoteTest
             }
 
             Debug.WriteLine("Got MPS");
+            vjoy.SetAxis(values.X-calibration.X, id, HID_USAGES.HID_USAGE_X);
 
         }
 
