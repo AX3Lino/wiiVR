@@ -29,6 +29,8 @@ namespace WiimoteTest
 
 		private CalcLogic cLogic = null;
 
+		private WiimoteState ws;
+
 		public WiimoteInfo()
 		{
 			InitializeComponent();
@@ -64,7 +66,7 @@ namespace WiimoteTest
 
 		private void UpdateWiimoteChanged(WiimoteChangedEventArgs args)
 		{
-			WiimoteState ws = args.WiimoteState;
+			ws = args.WiimoteState;
 
 			clbButtons.SetItemChecked(0, ws.ButtonState.A);
 			clbButtons.SetItemChecked(1, ws.ButtonState.B);
@@ -192,14 +194,16 @@ namespace WiimoteTest
 				case ExtensionType.MotionPlus:
 				case ExtensionType.MotionPlus_TR:
 					lblMotionPlus.Text = ws.MotionPlusState.RawValues.ToString();
+					
 					if(cLogic != null)
                     {
-						cLogic.setMPS(ws.MotionPlusState.RawValues);
+						cLogic.setMPS(ws);
                     }
-					//Debug.WriteLine(ws.MotionPlusState.RawValues.ToString());   //---------------------TU SU HODNOTY------------- TODO
+					//Debug.WriteLine(ws.MotionPlusState.RawValues.X.ToString());   //---------------------TU SU HODNOTY------------- TODO
 					clbSpeed.SetItemChecked(0, ws.MotionPlusState.YawFast);
 					clbSpeed.SetItemChecked(1, ws.MotionPlusState.PitchFast);
 					clbSpeed.SetItemChecked(2, ws.MotionPlusState.RollFast);
+
 					break;
 			}
 
@@ -210,7 +214,19 @@ namespace WiimoteTest
 			UpdateIR(ws.IRState.IRSensors[2], lblIR3, lblIR3Raw, 2, Color.Yellow);
 			UpdateIR(ws.IRState.IRSensors[3], lblIR4, lblIR4Raw, 3, Color.Orange);
 
-			if(ws.IRState.IRSensors[0].Found && ws.IRState.IRSensors[1].Found)
+			if (cLogic != null)
+			{
+				cLogic.setIR(ws);
+			}
+
+
+
+
+
+
+
+
+			if (ws.IRState.IRSensors[0].Found && ws.IRState.IRSensors[1].Found)
 				g.DrawEllipse(new Pen(Color.Green), (int)(ws.IRState.RawMidpoint.X / 4), (int)(ws.IRState.RawMidpoint.Y / 4), 2, 2);
 
 			pbIR.Image = b;
@@ -226,14 +242,10 @@ namespace WiimoteTest
 
 			if(irSensor.Found)
 			{
+
 				lblNorm.Text = irSensor.Position.ToString() + ", " + irSensor.Size;
 				lblRaw.Text = irSensor.RawPosition.ToString();
-				//Debug.WriteLine(irSensor.RawPosition.ToString());
-				//-------------
-				if (cLogic != null)
-				{
-					cLogic.setIR(irSensor.RawPosition);
-				}
+
 				g.DrawEllipse(new Pen(color), (int)(irSensor.RawPosition.X / 4), (int)(irSensor.RawPosition.Y / 4),
 							 irSensor.Size+1, irSensor.Size+1);
 			}

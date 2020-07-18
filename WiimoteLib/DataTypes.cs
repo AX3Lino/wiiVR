@@ -820,7 +820,10 @@ namespace WiimoteLib
 		/// Nunchuk extension
 		/// </summary>
 		Nunchuk				= 0x0000a4200000,
-		Nunchuk_TR			= 0xff00a4200000,
+		/// <summary>
+		/// Nunchuk extension
+		/// </summary>
+		Nunchuk_TR = 0xff00a4200000,
 		/// <summary>
 		/// Classic Controller extension
 		/// </summary>
@@ -845,7 +848,10 @@ namespace WiimoteLib
 		/// Wii MotionPlus extension
 		/// </summary>
 		MotionPlus			= 0x0000a4200405,
-		MotionPlus_TR		= 0x0100a4200405,
+		/// <summary>
+		/// Wii MotionPlus extension
+		/// </summary>
+		MotionPlus_TR = 0x0100a4200405,
 		/// <summary>
 		/// Partially inserted extension.  This is an error condition.
 		/// </summary>
