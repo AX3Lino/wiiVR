@@ -92,29 +92,31 @@ namespace WiimoteTest
                 }
             }
 			//rz += kz - ws.MotionPlusState.RawValues.Y;
-
+			/*
 			//Debug.WriteLine("Z:" + rz);
-			if (ws.AccelState.Values.Z!=1)
+			if (ws.AccelState.Values.Z<0.99)
             {
                 if (ws.MotionPlusState.RawValues.Y > kz)
                 {
-					//RZ = (int)(32767 / 2 + (1- ws.AccelState.Values.Z) * 32767 / 2);
+					RZ = (int)(32767 / 2 + (1- ws.AccelState.Values.Z) * 32767 / 2);
 					//Debug.WriteLine(ws.MotionPlusState.RawValues.Z - avrZ + " hore ");
 				}
                 else
                 {
-					//RZ = (int)(32767 / 2 - (1- ws.AccelState.Values.Z) * 32767 / 2);
+					RZ = (int)(32767 / 2 - (1- ws.AccelState.Values.Z) * 32767 / 2);
 					//Debug.WriteLine(ws.MotionPlusState.RawValues.Z - avrZ + " dole ");
 				}
             }
             else
             {
 				//Debug.WriteLine("bola1");
+				RZ = (int)(32767/2 );
 			}
-
+			*/
 			RX = (int)(32767 / 2 + ws.AccelState.Values.X * 32767 / 2);
 			RY = (int)(32767 / 2 - ws.AccelState.Values.Y * 32767 / 2); // Y je pseudo hotovy 
-			RZ = (int)(32767/2 );
+			RZ = (int)(32767 / 2 - ws.AccelState.Values.Z * 32767 / 2);
+
 			//Debug.WriteLine(ws.MotionPlusState.RawValues.Z + "Got MPS" + ws.AccelState.RawValues.Z);
 			vjoy.SetAxis(RX, id, HID_USAGES.HID_USAGE_RX);
 			vjoy.SetAxis(RY, id, HID_USAGES.HID_USAGE_RY);

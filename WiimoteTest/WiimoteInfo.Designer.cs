@@ -404,7 +404,6 @@
             // pbBattery
             // 
             this.pbBattery.Location = new System.Drawing.Point(8, 20);
-            this.pbBattery.Maximum = 200;
             this.pbBattery.Name = "pbBattery";
             this.pbBattery.Size = new System.Drawing.Size(128, 23);
             this.pbBattery.Step = 1;

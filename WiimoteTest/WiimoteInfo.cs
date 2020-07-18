@@ -231,8 +231,9 @@ namespace WiimoteTest
 
 			pbIR.Image = b;
 
-			pbBattery.Value = (ws.Battery > 0xc8 ? 0xc8 : (int)ws.Battery);
-			lblBattery.Text = ws.Battery.ToString();
+			pbBattery.Value = (ws.BatteryRaw > 100 ? 100 : (int)ws.BatteryRaw);
+			//lblBattery.Text = (ws.Battery*2).ToString();
+			lblBattery.Text = Math.Min((int)ws.BatteryRaw,100).ToString();
 			lblDevicePath.Text = "Device Path: " + mWiimote.HIDDevicePath;
 		}
 
