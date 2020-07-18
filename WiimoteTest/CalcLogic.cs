@@ -25,6 +25,13 @@ namespace WiimoteTest
 
         bool calFlag = false;
 
+		//Capture pos variables
+		List<Point3F> accS = new List<Point3F>();
+		List<Point3> rawV = new List<Point3>();
+		WiimoteState wsTest;
+
+
+		//Gabos variables
 		float rx = 0;
 		float ry = 7500;
 		float rz = 7500;
@@ -66,6 +73,9 @@ namespace WiimoteTest
 
         public void setMPS(WiimoteState ws)
         {
+			//Zmazat potom
+			wsTest = ws;
+
 			int RX;
 			int RY;
 			int RZ;
@@ -248,6 +258,24 @@ namespace WiimoteTest
             calFlag = true;
         }
 
+        public void capturePos()
+        {
+			if (wsTest == null) return; //Pre istotu
+			Debug.WriteLine("Position captured");
 
+			accS.Add(wsTest.AccelState.Values);
+			rawV.Add(wsTest.MotionPlusState.RawValues);
+
+			if(accS.Count > 1)	//Porovnavame ak mame 2+ zaznamov
+            {
+				for(int i=0; i<accS.Count;i++)
+                {
+					Debug.WriteLine("Capture " + i);
+					Debug.WriteLine("AccesState: " + accS[i].ToString());
+					Debug.WriteLine("RawValues: " + rawV[i].ToString());
+					Debug.WriteLine("--------------------------");
+				}
+            }
+        }
     }
 }
