@@ -32,16 +32,16 @@ namespace WiimoteTest
 
 
 		//Gabos variables
-		float rx = 0;
-		float ry = 7500;
-		float rz = 7500;
+		float rx = 50;
+		float ry = 0;
+		float rz = 0;
 		float vx = 0;
 		float vy = 0;
 		float vz = 0;
 		bool first = true;
-		float kx = 7500;
-		float ky = 7500;
-		float kz = 7500;
+		float kx = 147;
+		float ky = 149;
+		float kz = 149;
 		int cal = 0;
 		int cp = 0;
 		int[] calX = new int[10];
@@ -79,28 +79,27 @@ namespace WiimoteTest
 			int RX;
 			int RY;
 			int RZ;
-			int rz0;
-			if (first)
+			if (first||calFlag)
             {
+				if (cal == 0 && first)
+                {
+					kx = ws.MotionPlusState.RawValues.X;
+				}
                 if (cal != 10)
                 {
-                    if (cal == 0)
-                    {
-						kz = ws.MotionPlusState.RawValues.Y;
-					}
-
-					avrZ += ws.MotionPlusState.RawValues.Y;
-					deltaZ += Math.Abs(kz - ws.MotionPlusState.RawValues.Y);
+					avrX += ws.MotionPlusState.RawValues.X;
+					deltaX += Math.Abs(ws.MotionPlusState.RawValues.X - kx);
 					cal++;
                 }
                 else
                 {
-					dZ = deltaZ / 5;
-					kz = avrZ / 10;
 					first = false;
-					Debug.WriteLine("end");
+					calFlag = false;
+					cal = 0;
+					kx = avrX / 10;
                 }
             }
+
 			//rz += kz - ws.MotionPlusState.RawValues.Y;
 			/*
 			//Debug.WriteLine("Z:" + rz);
@@ -123,10 +122,27 @@ namespace WiimoteTest
 				RZ = (int)(32767/2 );
 			}
 			*/
-			RX = (int)(32767 / 2 + ws.AccelState.Values.X * 32767 / 2);
-			RY = (int)(32767 / 2 - ws.AccelState.Values.Y * 32767 / 2); // Y je pseudo hotovy 
-			RZ = (int)(32767 / 2 - ws.AccelState.Values.Z * 32767 / 2);
+			if (ws.MotionPlusState.YawFast)
+            {
+				if (kx - ws.MotionPlusState.RawValues.X > deltaX)
+                {
+					rx += (kx- ws.MotionPlusState.RawValues.X)/750;
+                }
+				else if (kx-ws.MotionPlusState.RawValues.X<-deltaX)
+                {
+					rx += (kx - ws.MotionPlusState.RawValues.X)/750;
+                }
+            }
+			rz = 2 * (kz - ws.AccelState.RawValues.Z);
+			ry = 2 * (ky - ws.AccelState.RawValues.Y);
+			//rx = 2 * (kx - ws.AccelState.RawValues.X);
 
+
+			RX = (int)(32767 * rx / 100);
+			RY = (int)(32767 * ry / 100); // Y je pseudo hotovy 
+			RZ = (int)(32767 * rz / 100);
+
+			//Debug.WriteLine(2*(ky - ws.AccelState.RawValues.Y) + " asdas "+rx);
 			//Debug.WriteLine(ws.MotionPlusState.RawValues.Z + "Got MPS" + ws.AccelState.RawValues.Z);
 			vjoy.SetAxis(RX, id, HID_USAGES.HID_USAGE_RX);
 			vjoy.SetAxis(RY, id, HID_USAGES.HID_USAGE_RY);
@@ -136,19 +152,22 @@ namespace WiimoteTest
 
         public void setIR(WiimoteState ws)
         {
-			float dotDistanceInMM = 8.5f * 25.4f;//width of the wii sensor bar
-			float screenHeightinMM = 20 * 25.4f; 
-			float radiansPerPixel = (float)(Math.PI / 4) / 1024.0f; //45 degree field of view with a 1024x768 camera
+			float dotDistanceInMM = 215.9f;//width of the wii sensor bar
+			float screenHeightinMM = 8.5f * 25.4f; 
+			float radiansPerPixel = 0.84098780112944162841859845373893f / 1016.0f; //45 degree field of view with a 1024x768 camera
 			float movementScaling = 1.0f;
 			float relativeVerticalAngle = 0; //current head position view angle
 			float cameraVerticaleAngle = 0; //begins assuming the camera is point straight forward
 			Point2D[] wiimotePointsNormalized = new Point2D[4];
 			int[] wiimotePointIDMap = new int[4];
+			float px;
+			float py;
+			float pz;
 
 
 
 			//Debug.WriteLine("Got IR");
-			
+
 			for (int i = 0; i < 4; i++)
 			{
 				wiimotePointsNormalized[i] = new Point2D();
@@ -163,8 +182,8 @@ namespace WiimoteTest
 			int numvisible = 0;
 			if (ws.IRState.IRSensors[0].Found)
 			{
-				wiimotePointsNormalized[0].x = 1.0f - ws.IRState.IRSensors[0].RawPosition.X / 768.0f;
-				wiimotePointsNormalized[0].y = ws.IRState.IRSensors[0].RawPosition.Y / 768.0f;
+				wiimotePointsNormalized[0].x = 1.0f - ws.IRState.IRSensors[0].RawPosition.X / 760.0f;
+				wiimotePointsNormalized[0].y = ws.IRState.IRSensors[0].RawPosition.Y / 760.0f;
 				firstPoint.x = ws.IRState.IRSensors[0].RawPosition.X;
 				firstPoint.y = ws.IRState.IRSensors[0].RawPosition.Y;
 				numvisible = 1;
@@ -172,8 +191,8 @@ namespace WiimoteTest
 
 			if (ws.IRState.IRSensors[1].Found)
 			{
-				wiimotePointsNormalized[1].x = 1.0f - ws.IRState.IRSensors[1].RawPosition.X / 768.0f;
-				wiimotePointsNormalized[1].y = ws.IRState.IRSensors[1].RawPosition.Y / 768.0f;
+				wiimotePointsNormalized[1].x = 1.0f - ws.IRState.IRSensors[1].RawPosition.X / 760.0f;
+				wiimotePointsNormalized[1].y = ws.IRState.IRSensors[1].RawPosition.Y / 760.0f;
 				if (numvisible == 0)
 				{
 					firstPoint.x = ws.IRState.IRSensors[1].RawPosition.X;
@@ -190,8 +209,8 @@ namespace WiimoteTest
 
 			if (ws.IRState.IRSensors[2].Found)
 			{
-				wiimotePointsNormalized[2].x = 1.0f - ws.IRState.IRSensors[2].RawPosition.X / 768.0f;
-				wiimotePointsNormalized[2].y = ws.IRState.IRSensors[2].RawPosition.Y / 768.0f;
+				wiimotePointsNormalized[2].x = 1.0f - ws.IRState.IRSensors[2].RawPosition.X / 760.0f;
+				wiimotePointsNormalized[2].y = ws.IRState.IRSensors[2].RawPosition.Y / 760.0f;
 				if (numvisible == 0)
 				{
 					firstPoint.x = ws.IRState.IRSensors[2].RawPosition.X;
@@ -208,8 +227,8 @@ namespace WiimoteTest
 
 			if (ws.IRState.IRSensors[3].Found)
 			{
-				wiimotePointsNormalized[3].x = 1.0f - ws.IRState.IRSensors[3].RawPosition.X / 768.0f;
-				wiimotePointsNormalized[3].y = ws.IRState.IRSensors[3].RawPosition.Y / 768.0f;
+				wiimotePointsNormalized[3].x = 1.0f - ws.IRState.IRSensors[3].RawPosition.X / 760.0f;
+				wiimotePointsNormalized[3].y = ws.IRState.IRSensors[3].RawPosition.Y / 760.0f;
 				if (numvisible == 1)
 				{
 					secondPoint.x = ws.IRState.IRSensors[3].RawPosition.X;
@@ -229,7 +248,8 @@ namespace WiimoteTest
 
 				float angle = radiansPerPixel * pointDist / 2;
 				//in units of screen hieght since the box is a unit cube and box hieght is 1
-				pZ = movementScaling * (float)((dotDistanceInMM / 2) / Math.Tan(angle)) / screenHeightinMM;
+				pZ = (float)((dotDistanceInMM / 2) / Math.Sin(angle)) ;
+				//Debug.WriteLine(pZ);
 
 
 				float avgX = (firstPoint.x + secondPoint.x) / 2.0f;
@@ -239,27 +259,35 @@ namespace WiimoteTest
 				//should  calaculate based on distance
 
 				pX = (float)(movementScaling * Math.Sin(radiansPerPixel * (avgX - 512)) * pZ);
-
+				//Debug.WriteLine(pX);
 				relativeVerticalAngle = (avgY - 384) * radiansPerPixel;//relative angle to camera axis
 
 
 				pY = -.5f + (float)(movementScaling * Math.Sin(relativeVerticalAngle + cameraVerticaleAngle) * pZ);
 			}
-			//Debug.WriteLine(pZ);
-			vjoy.SetAxis((int)pX, id, HID_USAGES.HID_USAGE_X);
-			vjoy.SetAxis((int)pY, id, HID_USAGES.HID_USAGE_Y);
-			vjoy.SetAxis((int)pZ, id, HID_USAGES.HID_USAGE_Z);
+            else
+            {
+				pZ = 1500;
+            }
+			Debug.WriteLine(pZ);
+			pz = 32767 * pZ / 3000;
+			px = 32767 * (750 - pX) / 1500;
+			py = 32767 * (750 - pY) / 1500;
+			vjoy.SetAxis((int)px, id, HID_USAGES.HID_USAGE_X);
+			vjoy.SetAxis((int)py, id, HID_USAGES.HID_USAGE_Y);
+			vjoy.SetAxis((int)pz, id, HID_USAGES.HID_USAGE_Z);
 			
 
 		}
 
         public void setMPSCalibration()
         {
-            calFlag = true;
+            
         }
 
         public void capturePos()
         {
+
 			if (wsTest == null) return; //Pre istotu
 			Debug.WriteLine("Position captured");
 
@@ -274,6 +302,7 @@ namespace WiimoteTest
 					Debug.WriteLine("AccesState: " + accS[i].ToString());
 					Debug.WriteLine("RawValues: " + rawV[i].ToString());
 					Debug.WriteLine("--------------------------");
+					
 				}
             }
         }
